@@ -24,7 +24,7 @@ Safeguard is a CLI tool that leverages Large Language Models (LLMs) to analyze c
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/safeguard.git
+git clone https://github.com/crisecheverria/safeguard.git
 cd safeguard
 
 # Build the executable
