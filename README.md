@@ -42,16 +42,25 @@ chmod +x safeguard
 
 # Using OpenAI
 ./safeguard --provider=openai --source=main --target=feature-branch --file="path/to/file.js"
+
+# Interactive file selection mode
+./safeguard --source=main --target=feature-branch --interactive
+# Then use:
+# - Arrow keys to navigate
+# - / to start filtering (type to filter as you type)
+# - Enter to select a file
+# - q or Ctrl+C to quit
 ```
 
 ### Command Line Options
 
-- `--file`: Path to the file to analyze (required)
+- `--file`: Path to the file to analyze (required unless using interactive mode)
 - `--source`: Source branch for comparison (required)
 - `--target`: Target branch for comparison (required)
 - `--provider`: LLM provider to use ("anthropic" or "openai", default: "anthropic")
 - `--model`: Specific model to use (optional, defaults based on provider)
 - `--key`: API key for the provider (optional, will use environment variable if not provided)
+- `--interactive`: Launch in interactive file selection mode (optional)
 
 ### Environment Variables
 

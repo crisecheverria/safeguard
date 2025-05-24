@@ -1,3 +1,7 @@
 {
-  "amp.commands.allowlist": ["go clean -modcache", "go mod tidy"]
+  "amp.commands.allowlist": [
+    "go clean -modcache",
+    "go mod tidy",
+    "go get github.com/charmbracelet/bubbletea github.com/charmbracelet/bubbles/list github.com/charmbracelet/lipgloss"
+  ]
 }

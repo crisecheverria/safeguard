@@ -29,8 +29,13 @@ func main() {
 	fmt.Println("Safeguard - Code Change Analysis Tool v1.0.0")
 	cfg := parseFlags()
 
-	if cfg.FilePath == "" || cfg.SourceBranch == "" || cfg.TargetBranch == "" {
-		fmt.Println("Error: File path, source branch, and target branch are required")
+	if cfg.SourceBranch == "" || cfg.TargetBranch == "" {
+		fmt.Println("Error: Source branch and target branch are required")
+		os.Exit(1)
+	}
+	
+	if cfg.FilePath == "" {
+		fmt.Println("Error: File path is required. Use --interactive flag to select a file interactively.")
 		os.Exit(1)
 	}
 
@@ -80,6 +85,7 @@ func main() {
 
 func parseFlags() Config {
 	var cfg Config
+	var interactive bool
 
 	flag.StringVar(&cfg.FilePath, "file", "", "Path to the file to analyze")
 	flag.StringVar(&cfg.SourceBranch, "source", "", "Source branch")
@@ -87,8 +93,21 @@ func parseFlags() Config {
 	flag.StringVar(&cfg.Model, "model", "", "Model to use (claude-3-opus-20240229 for Anthropic, gpt-4-turbo for OpenAI)")
 	flag.StringVar(&cfg.Provider, "provider", "anthropic", "LLM provider (anthropic or openai)")
 	flag.StringVar(&cfg.APIKey, "key", "", "API key for the provider")
+	flag.BoolVar(&interactive, "interactive", false, "Use interactive mode to select files")
 
 	flag.Parse()
+	
+	// Handle interactive file selection if enabled or no file specified
+	if interactive || cfg.FilePath == "" {
+		fmt.Println("Launching interactive file selector...")
+		selectedFile, err := launchFileSelector()
+		if err != nil {
+			fmt.Printf("Error in interactive mode: %v\n", err)
+			os.Exit(1)
+		}
+		cfg.FilePath = selectedFile
+		fmt.Printf("Selected file: %s\n", cfg.FilePath)
+	}
 
 	// Set default models if not provided
 	if cfg.Model == "" {
