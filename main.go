@@ -27,6 +27,7 @@ type Config struct {
 func main() {
 	// Display the CLI version
 	fmt.Println("Safeguard - Code Change Analysis Tool v1.0.0")
+	fmt.Println("© 2025 - Licensed under MIT License - See LICENSE file for details")
 	cfg := parseFlags()
 
 	if cfg.SourceBranch == "" || cfg.TargetBranch == "" {

@@ -109,4 +109,11 @@ If the tool reports that the diff is empty:
 
 ## License
 
-[MIT License](LICENSE)
+This project is licensed under the [MIT License](LICENSE) - see the LICENSE file for details.
+
+### License Terms
+
+- You can use this software commercially
+- You can modify and distribute this software
+- You must include the original copyright notice and license
+- The author is not liable for any damages from using this software
