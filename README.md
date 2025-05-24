@@ -2,6 +2,8 @@
 
 Safeguard is a CLI tool that leverages Large Language Models (LLMs) to analyze changes between Git branches and identify potential bugs or issues. It works by generating a diff between specified files in two branches and using either Anthropic Claude or OpenAI GPT models to analyze the changes.
 
+![Analysis Output](./assets/img/analysis-result.png)
+
 ## Features
 
 - Compares files between Git branches
