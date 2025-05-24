@@ -59,6 +59,10 @@ safeguard --source=main --target=feature-branch --interactive
 
 ### Command Line Options
 
+```bash
+safeguard --help
+```
+
 - `--file`: Path to the file to analyze (required unless using interactive mode)
 - `--source`: Source branch for comparison (required)
 - `--target`: Target branch for comparison (required)
