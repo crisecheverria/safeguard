@@ -67,6 +67,8 @@ safeguard --source=main --target=feature-branch --interactive
 - `--key`: API key for the provider (optional, will use environment variable if not provided)
 - `--interactive`: Launch in interactive file selection mode (optional)
 
+![Interactive File Selection Filter](./assets/img/interactive-filter.png)
+
 ### Environment Variables
 
 - `ANTHROPIC_API_KEY`: API key for Anthropic Claude
