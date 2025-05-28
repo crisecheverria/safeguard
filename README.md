@@ -10,6 +10,9 @@ Safeguard is a CLI tool that leverages Large Language Models (LLMs) to analyze c
 - Generates detailed diffs of changes
 - Uses LLMs to analyze changes for potential bugs
 - Supports both Anthropic Claude and OpenAI models
+- Interactive file selection with multi-file support
+- Real-time filtering and search capabilities
+- Cross-file dependency analysis for multiple files
 - Detailed error reporting and logging
 
 ## Installation
@@ -48,12 +51,13 @@ safeguard --source=main --target=feature-branch --file="path/to/file.js"
 # Using OpenAI
 safeguard --provider=openai --source=main --target=feature-branch --file="path/to/file.js"
 
-# Interactive file selection mode
+# Interactive file selection mode (supports multiple files)
 safeguard --source=main --target=feature-branch --interactive
 # Then use:
 # - Arrow keys to navigate
+# - Space to toggle file selection (multiple files)
 # - / to start filtering (type to filter as you type)
-# - Enter to select a file
+# - Enter to confirm selection
 # - q or Ctrl+C to quit
 ```
 

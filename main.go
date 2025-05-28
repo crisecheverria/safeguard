@@ -16,7 +16,7 @@ import (
 )
 
 type Config struct {
-	FilePath     string
+	FilePaths    []string
 	SourceBranch string
 	TargetBranch string
 	Model        string
@@ -35,36 +35,58 @@ func main() {
 		os.Exit(1)
 	}
 	
-	if cfg.FilePath == "" {
-		fmt.Println("Error: File path is required. Use --interactive flag to select a file interactively.")
+	if len(cfg.FilePaths) == 0 {
+		fmt.Println("Error: At least one file path is required. Use --interactive flag to select files interactively.")
 		os.Exit(1)
 	}
 
-	sourceContent, err := getFileFromBranch(cfg.FilePath, cfg.SourceBranch)
-	if err != nil {
-		fmt.Printf("Error getting file from source branch: %v\n", err)
-		os.Exit(1)
-	}
+	// Process multiple files
+	var allDiffs []string
+	var allFilePaths []string
+	
+	for _, filePath := range cfg.FilePaths {
+		fmt.Printf("\nProcessing file: %s\n", filePath)
+		
+		sourceContent, err := getFileFromBranch(filePath, cfg.SourceBranch)
+		if err != nil {
+			fmt.Printf("Error getting file %s from source branch: %v\n", filePath, err)
+			continue // Skip this file and continue with others
+		}
 
-	targetContent, err := getFileFromBranch(cfg.FilePath, cfg.TargetBranch)
-	if err != nil {
-		fmt.Printf("Error getting file from target branch: %v\n", err)
-		os.Exit(1)
-	}
+		targetContent, err := getFileFromBranch(filePath, cfg.TargetBranch)
+		if err != nil {
+			fmt.Printf("Error getting file %s from target branch: %v\n", filePath, err)
+			continue // Skip this file and continue with others
+		}
 
-	diff, err := generateDiff(sourceContent, targetContent, cfg.SourceBranch, cfg.TargetBranch, cfg.FilePath)
-	if err != nil {
-		fmt.Printf("Error generating diff: %v\n", err)
-		os.Exit(1)
+		diff, err := generateDiff(sourceContent, targetContent, cfg.SourceBranch, cfg.TargetBranch, filePath)
+		if err != nil {
+			fmt.Printf("Error generating diff for %s: %v\n", filePath, err)
+			continue // Skip this file and continue with others
+		}
+		
+		if strings.TrimSpace(diff) != "" {
+			allDiffs = append(allDiffs, fmt.Sprintf("=== File: %s ===\n%s", filePath, diff))
+			allFilePaths = append(allFilePaths, filePath)
+		} else {
+			fmt.Printf("No changes detected in %s\n", filePath)
+		}
+	}
+	
+	if len(allDiffs) == 0 {
+		fmt.Println("No changes detected in any of the selected files.")
+		os.Exit(0)
 	}
 	
 	// Display diff summary for verification
-	fmt.Println("\nDiff generated successfully.")
-	fmt.Printf("Diff length: %d characters\n", len(diff))
-
-	prompt := buildPrompt(cfg.FilePath, diff)
+	fmt.Printf("\nDiffs generated successfully for %d files.\n", len(allDiffs))
+	
+	// Combine all diffs for analysis
+	combinedDiff := strings.Join(allDiffs, "\n\n")
+	prompt := buildPrompt(strings.Join(allFilePaths, ", "), combinedDiff)
 
 	var analysis string
+	var err error
 	switch cfg.Provider {
 	case "anthropic":
 		analysis, err = getAnthropicAnalysis(cfg.APIKey, cfg.Model, prompt)
@@ -87,8 +109,9 @@ func main() {
 func parseFlags() Config {
 	var cfg Config
 	var interactive bool
+	var filePath string
 
-	flag.StringVar(&cfg.FilePath, "file", "", "Path to the file to analyze")
+	flag.StringVar(&filePath, "file", "", "Path to the file to analyze")
 	flag.StringVar(&cfg.SourceBranch, "source", "", "Source branch")
 	flag.StringVar(&cfg.TargetBranch, "target", "", "Target branch")
 	flag.StringVar(&cfg.Model, "model", "", "Model to use (claude-3-opus-20240229 for Anthropic, gpt-4-turbo for OpenAI)")
@@ -99,15 +122,17 @@ func parseFlags() Config {
 	flag.Parse()
 	
 	// Handle interactive file selection if enabled or no file specified
-	if interactive || cfg.FilePath == "" {
+	if interactive || filePath == "" {
 		fmt.Println("Launching interactive file selector...")
-		selectedFile, err := launchFileSelector()
+		selectedFiles, err := launchFileSelector()
 		if err != nil {
 			fmt.Printf("Error in interactive mode: %v\n", err)
 			os.Exit(1)
 		}
-		cfg.FilePath = selectedFile
-		fmt.Printf("Selected file: %s\n", cfg.FilePath)
+		cfg.FilePaths = selectedFiles
+		fmt.Printf("Selected files: %v\n", cfg.FilePaths)
+	} else {
+		cfg.FilePaths = []string{filePath}
 	}
 
 	// Set default models if not provided
@@ -215,9 +240,9 @@ func generateDiff(sourceContent, targetContent string, sourceBranch, targetBranc
 	return stdout.String(), nil
 }
 
-func buildPrompt(filePath string, diff string) string {
-	template := "You are an expert code reviewer specializing in finding bugs. Analyze the following changes in the file %s to identify potential bugs, logic errors, edge cases, and performance issues.\n\nDiff:\n```\n%s\n```\n\nFocus on:\n1. Logic errors\n2. Race conditions\n3. Memory leaks\n4. Security vulnerabilities\n5. API contract violations\n6. Edge cases\n7. Performance issues\n\nProvide a concise analysis listing only potential issues. If there are no issues, state that explicitly."
-	return fmt.Sprintf(template, filePath, diff)
+func buildPrompt(filePaths string, diff string) string {
+	template := "You are an expert code reviewer specializing in finding bugs. Analyze the following changes in the file(s) %s to identify potential bugs, logic errors, edge cases, and performance issues.\n\nDiff:\n```\n%s\n```\n\nFocus on:\n1. Logic errors\n2. Race conditions\n3. Memory leaks\n4. Security vulnerabilities\n5. API contract violations\n6. Edge cases\n7. Performance issues\n8. Cross-file dependencies and impacts\n\nProvide a concise analysis listing only potential issues. If there are no issues, state that explicitly. When analyzing multiple files, consider how changes might affect interactions between files."
+	return fmt.Sprintf(template, filePaths, diff)
 }
 
 type AnthropicMessage struct {
